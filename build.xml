@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     03.06.2021 20:27:08                                                        
+
+     ESA Buildmanagement    
+     Softwaretechnik
+                   
+     Tilo Karczewski                                                              
+     ====================================================================== -->
+<project basedir="." name="project" default="TOTAL">
+    <description>
+            ESA Softwaretechnik 
+    </description>
+	<!-- hier global den hilfsordner-namen als property angeben-->
+	<property name="src" value="\antsrc"/>
+	<property name="bin" value="\binaries"/>
+	<property name="out" value="\out"/>
+	<property name="doc" value="\doc"/>
+	<!-- zentraler einstieg über depends zu run, ie dependency struktur sorgt für den aufruf 
+	in der hier angelegten reihenfolge  -->
+    <target name="TOTAL" depends="DOC" description="description">
+    	<echo message="Am Ende alles gut :-)"/>	
+    </target>
+	<target name="CLEAN">
+		<!-- ordner erstellen, falls es noch keien builds gibt  -->
+		<mkdir dir="${basedir}${src}"/>
+		<!-- alles löschen, damit komplettes rebuild  -->
+		<delete dir="${basedir}${src}" defaultexcludes="false"/> 
+		<mkdir dir="${basedir}${doc}"/>
+		<delete dir="${basedir}${doc}" defaultexcludes="false"/> 
+		<echo message="CLEAN ausgeführt"/>
+	</target>
+	<target name="GET" depends="CLEAN">
+		<!-- holte die quellen aus  dem repository -->
+		<get 	src="https://raw.githubusercontent.com/TiloKar/Softwaretechnik_Testen/master/TextAnalyze.java" 
+				dest="${basedir}${src}"/>
+		<get 	src="https://raw.githubusercontent.com/TiloKar/Softwaretechnik_Testen/master/HonorarRechner.java" 
+				dest="${basedir}${src}"/>
+		<get 	src="https://raw.githubusercontent.com/TiloKar/Softwaretechnik_Testen/master/HonorarRechnerJUnit3Test.java" 
+				dest="${basedir}${src}"/>
+		<echo message="GET ausgeführt"/>
+	</target>
+	<target name="COMPILE" depends="GET">
+		<mkdir dir="${basedir}${bin}"/>
+		<!-- nur debug: <echo message="${basedir}${src}"/>
+		<echo message="${basedir}${bin}"/> -->
+		<delete dir="${basedir}${bin}" defaultexcludes="false"/> 
+		<javac 	srcdir="${basedir}${src}" 
+			    destdir="${basedir}${bin}" 
+				includeantruntime="true"/>
+		<!-- junit3 jar wurde in ant classpath via eclipse übernommen, sonst zickt es-->
+		<echo message="COMPILE ausgeführt"/>
+	</target>
+	<target name="JAR" depends="COMPILE">
+		<echo message="${basedir}${out}\out.jar"/>
+		<jar 	destfile="${basedir}${out}\out.jar"
+				basedir="${basedir}${bin}"/>
+		<echo message="JAR ausgeführt"/>
+		
+	</target>
+	<target name="TEST" depends="JAR">
+		<junit>
+			<classpath>
+	            <pathelement location="${basedir}${bin}"/>
+	        </classpath>
+			<test 	name="HonorarRechnerJUnit3Test"
+					todir="${basedir}${out}"/>
+		</junit>
+		<echo message="TEST ausgeführt"/>
+	</target>
+	<target name="RUN" depends="TEST">
+		<java classname="HonorarRechner">
+		  <arg value="ist da was? "/>
+		  <classpath>
+		    <pathelement location="${basedir}${bin}"/>
+		  </classpath>
+		</java>
+		<echo message="RUN ausgeführt"/>
+	</target>
+	<target name="DOC" depends="RUN">
+		<javadoc destdir="${basedir}${doc}"  windowtitle="Fax Application">
+		  <fileset dir="${basedir}${src}" defaultexcludes="yes">
+		    <include name="**"/>
+		  </fileset>	
+  
+   	</javadoc>
+		<echo message="DOC ausgeführt"/>
+	</target>
+
+</project>
